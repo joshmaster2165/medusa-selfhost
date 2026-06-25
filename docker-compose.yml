@@ -1,8 +1,7 @@
-# Self-host the Medusa dashboard from the private, license-gated image.
+# Self-host the Medusa dashboard from the free, public image.
 # No source, no local build — pull the image and point it at YOUR Supabase.
 #
-#   0. echo $GHCR_TOKEN | docker login ghcr.io -u <your-github-user> --password-stdin
-#   1. cp .env.example .env       # fill in your Supabase + license
+#   1. cp .env.example .env       # fill in your Supabase + (optional) license
 #   2. docker compose pull
 #   3. docker compose up -d
 #   4. open http://localhost:3000 (put behind TLS at your NEXT_PUBLIC_APP_URL)
