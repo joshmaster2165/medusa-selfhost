@@ -1,0 +1,23 @@
+# Self-host the Medusa dashboard from the public, license-gated image.
+# No source, no local build — pull the image and point it at YOUR Supabase.
+#
+#   1. cp .env.example .env       # fill in your Supabase + license
+#   2. docker compose pull
+#   3. docker compose up -d
+#   4. open http://localhost:3000 (put behind TLS at your NEXT_PUBLIC_APP_URL)
+services:
+  dashboard:
+    image: ghcr.io/joshmaster2165/medusa-dashboard:${MEDUSA_IMAGE_TAG:-latest}
+    pull_policy: always
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    # Everything the container needs comes from .env. The entrypoint injects the
+    # NEXT_PUBLIC_* values into the prebuilt client bundle at startup.
+    env_file:
+      - .env
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3000').then(()=>process.exit(0)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
