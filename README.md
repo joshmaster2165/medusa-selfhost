@@ -6,12 +6,14 @@ approvals stay inside your network (on-prem, your VPC, or air-gapped). Nothing
 talks to Medusa's cloud or to Supabase-the-company; Medusa only issues an
 offline-verified license key.
 
-> Medusa's dashboard is **closed-source** and ships as a prebuilt, public,
-> license-gated container image — you never need our source to run it.
+> Medusa's dashboard is **closed-source** and ships as a prebuilt,
+> license-gated container image — you never need our source to run it. The image
+> is private; Medusa grants your team pull access as part of onboarding.
 
 ## What you run
 
-- **The dashboard** — `ghcr.io/joshmaster2165/medusa-dashboard` (public image).
+- **The dashboard** — `ghcr.io/joshmaster2165/medusa-dashboard` (private image;
+  we grant your team pull access).
 - **Your own Supabase** — Postgres + Auth + Edge Functions, self-hosted (Docker)
   or a Supabase Cloud project in your own account.
 - **A per-org browser extension** — Medusa builds it for your origins.
@@ -21,8 +23,10 @@ control plane only ever receives metadata, never your text.
 
 ## Quick start
 
-**1. Get your kit from Medusa.** Email `support@medusasec.com` with your intended
-dashboard + Supabase URLs to receive:
+**1. Onboard with Medusa.** Email `support@medusasec.com` with your intended
+dashboard + Supabase URLs and your team's GitHub account(s). You receive:
+- **pull access** to the dashboard image (we invite your GitHub user, or issue a
+  read-only token),
 - your signed `MEDUSA_LICENSE_KEY`,
 - the backend kit (`medusa-selfhost-kit.tar.gz` — DB migrations + edge functions
   + setup scripts),
@@ -40,6 +44,9 @@ node scripts/selfhost-setup.mjs
 **3. Run the dashboard** (this repo):
 
 ```bash
+# authenticate to the private image (one-time), then pull + run
+echo $GHCR_TOKEN | docker login ghcr.io -u <your-github-user> --password-stdin
+
 cp .env.example .env       # fill in Supabase + license + POLICY_SIGNING_SECRET
 docker compose pull
 docker compose up -d
@@ -51,16 +58,20 @@ enroll with an org key generated in the dashboard.
 
 📘 **Full step-by-step guide:** https://medusasec.com/docs/deployment
 
-## How a public image stays "closed-source"
+## How distribution works (closed-source)
 
-A container image is the *compiled* app — not our git repo. The image is built
-once with placeholder config; its entrypoint injects **your** Supabase values
-(from `.env`) into the bundle at container start, so one public image works for
-any deployment. The image is free to pull — your **license key** is what unlocks
-a paid tier (verified offline with Ed25519, so it works fully air-gapped).
+A container image is the *compiled* app — not our git repo. Three facts:
 
-Air-gapped? `docker save` the image on a connected host and `docker load` it
-inside your network.
+1. **You pull an image, not source.** It contains the built app, never the
+   source. The image is **private**; Medusa grants your team read access.
+2. **One image, any Supabase.** It's built once with placeholder config; the
+   entrypoint injects **your** Supabase values (from `.env`) into the bundle at
+   container start, so the same image works for any deployment — no rebuild.
+3. **The license sets your tier.** `MEDUSA_LICENSE_KEY` is verified **offline**
+   (Ed25519), so it works fully air-gapped and never phones home.
+
+Air-gapped? After pulling, `docker save` the image on a connected host and
+`docker load` it inside your network.
 
 ## Licensing
 
@@ -71,8 +82,7 @@ inside your network.
 | Pro | 25 | 1 year | RBAC, audit export, SIEM |
 | Enterprise | unlimited | unlimited | SAML SSO, multi-tenant (MSSP) |
 
-Without a key the dashboard runs at the free tier. To request or renew a key,
-contact `sales@medusasec.com`.
+To request or renew a key, contact `sales@medusasec.com`.
 
 ## Support
 
